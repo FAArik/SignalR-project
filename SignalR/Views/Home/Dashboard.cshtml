@@ -1,0 +1,76 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h4>Products</h4>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <table class="table table-hover" id="tblEarnings">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Txhash</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js">
+    </script>
+    <script>
+        var connection = new signalR.HubConnectionBuilder().withUrl("/dashboard", {
+            accessTokenFactory()=> "FatihAli"
+                }).build();
+
+        connection.start().then(() => {
+            invokeEarnings()
+        }).catch((err) => {
+            return console.log(err.toString());
+        });
+
+        function invokeEarnings() {
+            connection.invoke("SendEarnings").catch((err) => {
+                return console.log(err.toString());
+            })
+        }
+
+        connection.on("ReceiveEarnings", (earnings) => {
+            BindProductsToGrid(earnings);
+        });
+
+        function BindProductsToGrid(earnings) {
+            $('#tblEarnings tbody').empty();
+
+            var tr;
+            $.each(earnings, (index, earning) => {
+                tr = $('<tr/>');
+                tr.append(`<td>${(index + 1)}</td>`);
+                tr.append(`<td>${(earning.txHash)}</td>`);
+                tr.append(`<td>${(earning.from)}</td>`);
+                tr.append(`<td>${(earning.to)}</td>`);
+                tr.append(`<td>${(earning.amount)}</td>`);
+                $('#tblEarnings').append(tr);
+            });
+        }
+    </script>
+}
